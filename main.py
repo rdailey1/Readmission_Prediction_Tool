@@ -22,7 +22,7 @@ def train_and_save():
     )
 
     print("Cross-validating...")
-    perform_cross_validation(
+    cross_validation_results = perform_cross_validation(
         logistic_model,
         random_forest_model,
         X_train,
@@ -39,7 +39,7 @@ def train_and_save():
         tuned_logistic_model,
         tuned_random_forest_model,
         X_test,
-        y_test
+        y_test 
     )
 
     save_artifacts(
@@ -47,7 +47,8 @@ def train_and_save():
         tuned_random_forest_model,
         scaler,
         feature_columns,
-        metrics
+        metrics,
+        cross_validation_results
     )
 
     print("Training complete.")
@@ -63,6 +64,7 @@ def main():
         print("1. Use saved model")
         print("2. Retrain model")
         print("3. Quit")
+        print()
 
         choice = input("Select option: ")
 
