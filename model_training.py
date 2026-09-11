@@ -105,7 +105,7 @@ def perform_cross_validation(logistic_model, random_forest_model, X_train, y_tra
 
 def tune_models(X_train, y_train):
 
-    print("Starting Logistic Regression hyperparameter tuning")
+    print("Starting Logistic Regression hyperparameter tuning...")
 
     # LR 3 hyperparameters, 2 tuning options each
     logistic_param_grid = {
@@ -129,7 +129,7 @@ def tune_models(X_train, y_train):
 
     # obtains best F1 after fit()
     print("Best Logistic Regression F1 score:", logistic_grid.best_score_)
-    print("Starting Random Forest hyperparameter tuning")
+    print("Starting Random Forest hyperparameter tuning...")
 
     # RF 3 hyperparameters, 2 tuning options each
     random_forest_param_grid = {
