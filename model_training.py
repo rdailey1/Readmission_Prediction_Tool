@@ -4,6 +4,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
+import joblib
+import os
 
 def build_models():
 
@@ -46,24 +48,27 @@ def train_models(processed_df):
 def evaluate_models(logistic_model, random_forest_model, X_test, y_test):
 
     models = {
-        "Logistic Regression": logistic_model,
-        "Random Forest": random_forest_model
+        "logistic_regression": logistic_model,
+        "random_forest": random_forest_model
     }
+
+    metrics = {}
 
     for model_name, model in models.items():
 
         predictions = model.predict(X_test)
 
-        # % of correct predictions
-        accuracy = accuracy_score(y_test, predictions)
-        # how many of predicted + were + (true positives)
         precision = precision_score(y_test, predictions)
-        # of all +, how many were found
         recall = recall_score(y_test, predictions)
-        # balance of precision and recall
         f1 = f1_score(y_test, predictions)
 
-        print(f"\n{model_name} Evaluation")
+        metrics[model_name] = {
+            "precision": precision,
+            "recall": recall,
+            "f1": f1
+        }
+
+    return metrics
 
 
 def perform_cross_validation(logistic_model, random_forest_model, X_train, y_train):
@@ -126,6 +131,8 @@ def tune_models(X_train, y_train):
     # train the data on the grid
     logistic_grid.fit(X_train, y_train)
 
+    print("Best Logistic Regression F1 score:", logistic_grid.best_score_)
+
     print("\nStarting Random Forest hyperparameter tuning")
 
     random_forest_param_grid = {
@@ -146,4 +153,32 @@ def tune_models(X_train, y_train):
 
     random_forest_grid.fit(X_train, y_train)
 
+    print("Best Random Forest F1 score:", random_forest_grid.best_score_)
+
     return logistic_grid.best_estimator_, random_forest_grid.best_estimator_        
+
+def save_artifacts(
+    logistic_model,
+    random_forest_model,
+    scaler,
+    feature_columns,
+    metrics
+):
+    os.makedirs("artifacts", exist_ok=True)
+
+    artifacts = {
+        "logistic_model": logistic_model,
+        "random_forest_model": random_forest_model,
+        "scaler": scaler,
+        "feature_columns": feature_columns,
+        "metrics": metrics,
+        "logistic_hyperparameters": logistic_model.get_params(),
+        "random_forest_hyperparameters": random_forest_model.get_params()
+    }
+
+    joblib.dump(
+        artifacts,
+        "artifacts/readmission_model_bundle.joblib"
+    )
+
+    print("Training artifacts saved.")

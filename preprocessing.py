@@ -52,4 +52,4 @@ def preprocess_data():
     processed_df.head(1000).to_csv("data/processed/preprocessed_diabetes_sample.csv", index=False)
 
     # returns the full 100k records to be used for training
-    return processed_df
+    return processed_df, scaler, features.columns.tolist()
