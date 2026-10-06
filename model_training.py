@@ -161,13 +161,10 @@ def save_artifacts(
     scaler,
     feature_columns,
     metrics,
-    cross_validation_results,    
-    X_test,
-    y_test
+    cross_validation_results
 ):
-    # ensure artifact directory exists
     os.makedirs("artifacts", exist_ok=True)
-    # defines/populates dictionary with args acquired from other processing/training functions
+
     artifacts = {
         "logistic_model": logistic_model,
         "random_forest_model": random_forest_model,
@@ -176,15 +173,26 @@ def save_artifacts(
         "metrics": metrics,
         "logistic_hyperparameters": logistic_model.get_params(),
         "random_forest_hyperparameters": random_forest_model.get_params(),
-        "cross_validation_results": cross_validation_results,
-        "X_test": X_test,
-        "y_test": y_test
+        "cross_validation_results": cross_validation_results
     }
 
-    # serializes/saves dictionary to disk. Overwrites any existing. 
     joblib.dump(
         artifacts,
         "artifacts/readmission_model_bundle.joblib"
     )
 
     print("Training artifacts saved.")
+
+def save_test_encounters(X_test, y_test):
+
+    os.makedirs("data/test", exist_ok=True)
+
+    test_data = {
+        "X_test": X_test,
+        "y_test": y_test
+    }
+
+    joblib.dump(
+        test_data,
+        "data/test/held_out_encounters.joblib"
+    )    

@@ -4,12 +4,14 @@ from model_training import (
     evaluate_models,
     perform_cross_validation,
     tune_models,
-    save_artifacts
+    save_artifacts,
+    save_test_encounters
 )
 import joblib
 
 
 ARTIFACT_PATH = "artifacts/readmission_model_bundle.joblib"
+TEST_DATA_PATH = "data/test/held_out_encounters.joblib"
 
 
 def train_and_save():
@@ -48,7 +50,10 @@ def train_and_save():
         scaler,
         feature_columns,
         metrics,
-        cross_validation_results,
+        cross_validation_results
+    )
+
+    save_test_encounters(
         X_test,
         y_test
     )
@@ -59,6 +64,8 @@ def train_and_save():
 def load_artifacts():
     return joblib.load(ARTIFACT_PATH)
 
+def load_test_encounters():
+    return joblib.load(TEST_DATA_PATH)
 
 def main():
     while True:
@@ -73,10 +80,11 @@ def main():
 
         if choice == "1":
             artifacts = load_artifacts()
+            test_data = load_test_encounters()
 
             model = artifacts["logistic_model"]
-            X_test = artifacts["X_test"]
-            y_test = artifacts["y_test"]
+            X_test = test_data["X_test"]
+            y_test = test_data["y_test"]
 
             print(f"Held-out patients available: 0-{len(X_test) - 1}")
 
