@@ -48,7 +48,9 @@ def train_and_save():
         scaler,
         feature_columns,
         metrics,
-        cross_validation_results
+        cross_validation_results,
+        X_test,
+        y_test
     )
 
     print("Training complete.")
@@ -68,10 +70,35 @@ def main():
 
         choice = input("Select option: ")
 
+
         if choice == "1":
             artifacts = load_artifacts()
-            print("Saved model loaded.")
-            # patient prediction goes here next
+
+            model = artifacts["logistic_model"]
+            X_test = artifacts["X_test"]
+            y_test = artifacts["y_test"]
+
+            print(f"Held-out patients available: 0-{len(X_test) - 1}")
+
+            while True:
+                try:
+                    patient_index = int(input("Select patient: "))
+
+                    if 0 <= patient_index < len(X_test):
+                        break
+
+                    print("Patient number out of range.")
+
+                except ValueError:
+                    print("Enter a valid patient number.")
+
+            patient = X_test.iloc[[patient_index]]
+
+            prediction = model.predict(patient)[0]
+            actual = y_test.iloc[patient_index]
+
+            print("Predicted readmission:", "Yes" if prediction == 1 else "No")
+            print("Actual readmission:", "Yes" if actual == 1 else "No")
 
         elif choice == "2":
             train_and_save()

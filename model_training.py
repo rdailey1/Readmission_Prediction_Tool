@@ -161,7 +161,9 @@ def save_artifacts(
     scaler,
     feature_columns,
     metrics,
-    cross_validation_results
+    cross_validation_results,    
+    X_test,
+    y_test
 ):
     # ensure artifact directory exists
     os.makedirs("artifacts", exist_ok=True)
@@ -174,7 +176,9 @@ def save_artifacts(
         "metrics": metrics,
         "logistic_hyperparameters": logistic_model.get_params(),
         "random_forest_hyperparameters": random_forest_model.get_params(),
-        "cross_validation_results": cross_validation_results
+        "cross_validation_results": cross_validation_results,
+        "X_test": X_test,
+        "y_test": y_test
     }
 
     # serializes/saves dictionary to disk. Overwrites any existing. 
