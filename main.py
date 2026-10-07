@@ -103,9 +103,11 @@ def main():
             patient = X_test.iloc[[patient_index]]
 
             prediction = model.predict(patient)[0]
+            readmission_probability = model.predict_proba(patient)[0][1]
             actual = y_test.iloc[patient_index]
 
             print("Predicted readmission:", "Yes" if prediction == 1 else "No")
+            print(f"Predicted 30-day readmission risk: {readmission_probability:.1%}")
             print("Actual readmission:", "Yes" if actual == 1 else "No")
 
         elif choice == "2":
