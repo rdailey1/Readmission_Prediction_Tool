@@ -8,6 +8,7 @@ from model_training import (
     save_test_encounters
 )
 import joblib
+from feature_labels import format_feature_name
 
 
 ARTIFACT_PATH = "artifacts/readmission_model_bundle.joblib"
@@ -109,6 +110,18 @@ def main():
             print("Predicted readmission:", "Yes" if prediction == 1 else "No")
             print(f"Predicted 30-day readmission risk: {readmission_probability:.1%}")
             print("Actual readmission:", "Yes" if actual == 1 else "No")
+
+            feature_contributions = patient.iloc[0] * model.coef_[0]
+
+            contributions = feature_contributions.sort_values(
+                ascending=False
+            )
+
+            print("\nTop features increasing readmission risk:")
+
+            for feature, contribution in contributions.head(10).items():
+                readable_name = format_feature_name(feature)
+                print(f"{readable_name}: {contribution:.3f}")
 
         elif choice == "2":
             train_and_save()

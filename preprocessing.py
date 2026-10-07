@@ -25,11 +25,19 @@ def preprocess_data():
     # Convert target variable to binary
     df["readmitted"] = df["readmitted"].apply(lambda x: 1 if x == "<30" else 0)
 
+    # Coded IDs represent categories rather than numerical quantities
+    categorical_id_columns = [
+        "admission_type_id",
+        "discharge_disposition_id",
+        "admission_source_id"
+    ]
+    df[categorical_id_columns] = df[categorical_id_columns].astype(str)
+
     # Distinguish target vs features
     target = df["readmitted"]
     features = df.drop("readmitted", axis=1)
 
-    # one-hot encoding 
+    # one-hot encoding
     features = pd.get_dummies(features, drop_first=True)
 
     # Scale features
