@@ -23,7 +23,9 @@ def preprocess_data():
     df = df.replace("?", "unknown")
 
     # Convert target variable to binary
-    df["readmitted"] = df["readmitted"].apply(lambda x: 1 if x == "<30" else 0)
+    df["readmitted"] = df["readmitted"].apply(
+        lambda x: 1 if x == "<30" else 0
+    )
 
     # Coded IDs represent categories rather than numerical quantities
     categorical_id_columns = [
@@ -37,14 +39,21 @@ def preprocess_data():
     target = df["readmitted"]
     features = df.drop("readmitted", axis=1)
 
+    # Identify true numerical features before one-hot encoding
+    numerical_columns = features.select_dtypes(
+        include=["int64", "float64"]
+    ).columns
+
     # one-hot encoding
     features = pd.get_dummies(features, drop_first=True)
 
-    # Scale features
+    # Scale only numerical features; encoded categorical features remain 0/1
     scaler = StandardScaler()
-    features_scaled = scaler.fit_transform(features)
+    features[numerical_columns] = scaler.fit_transform(
+        features[numerical_columns]
+    )
 
-    processed_df = pd.DataFrame(features_scaled, columns=features.columns)
+    processed_df = features.copy()
     processed_df["readmitted"] = target.values
 
     # returns the preprocessed records for training

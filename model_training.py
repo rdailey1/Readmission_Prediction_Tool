@@ -11,7 +11,7 @@ import os
 def build_models():
 
     logistic_model = LogisticRegression(
-        max_iter=50 
+        max_iter=500 
     )
 
     random_forest_model = RandomForestClassifier(
@@ -109,14 +109,13 @@ def tune_models(X_train, y_train):
 
     # LR 3 hyperparameters, 2 tuning options each
     logistic_param_grid = {
-        "max_iter": [100, 500],
         "C": [0.1, 1.0],
         "class_weight": [None, "balanced"]
     }
 
     # comparison framework for LR hyperparameter tunings
     logistic_grid = GridSearchCV(
-        LogisticRegression(),
+        LogisticRegression(max_iter=500),
         logistic_param_grid,
         # 3-fold cross-validation for each hyperparameter combo
         cv=3,

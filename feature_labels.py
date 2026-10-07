@@ -1,3 +1,46 @@
+import csv
+
+
+IDS_MAPPING_PATH = "data/reference/IDS_mapping.csv"
+
+
+def load_uci_mappings():
+
+    mappings = {
+        "admission_type_id": {},
+        "discharge_disposition_id": {},
+        "admission_source_id": {}
+    }
+
+    current_category = None
+
+    with open(IDS_MAPPING_PATH, newline="", encoding="utf-8") as file:
+        reader = csv.reader(file)
+
+        for row in reader:
+
+            if not row:
+                continue
+
+            # Detect beginning of each mapping section
+            if row[0] in mappings:
+                current_category = row[0]
+                continue
+
+            # Skip blank separator rows
+            if not row[0].strip():
+                continue
+
+            # Store ID → description
+            if current_category and row[0].strip().isdigit():
+                mappings[current_category][row[0].strip()] = row[1].strip()
+
+    return mappings
+
+
+UCI_MAPPINGS = load_uci_mappings()
+
+
 def format_feature_name(feature_name):
 
     # Diagnosis features
@@ -18,18 +61,21 @@ def format_feature_name(feature_name):
         age_range = feature_name.replace("age_", "")
         return f"Age: {age_range}"
 
-    # Coded categorical features
+    # UCI coded categorical features
     if feature_name.startswith("admission_type_id_"):
         value = feature_name.replace("admission_type_id_", "")
-        return f"Admission type: {value}"
+        description = UCI_MAPPINGS["admission_type_id"].get(value, value)
+        return f"Admission type: {description}"
 
     if feature_name.startswith("discharge_disposition_id_"):
         value = feature_name.replace("discharge_disposition_id_", "")
-        return f"Discharge disposition: {value}"
+        description = UCI_MAPPINGS["discharge_disposition_id"].get(value, value)
+        return f"Discharge disposition: {description}"
 
     if feature_name.startswith("admission_source_id_"):
         value = feature_name.replace("admission_source_id_", "")
-        return f"Admission source: {value}"
+        description = UCI_MAPPINGS["admission_source_id"].get(value, value)
+        return f"Admission source: {description}"
 
     # Common numerical features
     feature_labels = {
