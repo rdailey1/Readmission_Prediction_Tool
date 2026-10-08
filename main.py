@@ -68,6 +68,14 @@ def load_artifacts():
 def load_test_encounters():
     return joblib.load(TEST_DATA_PATH)
 
+def display_contributors(contributors, count, heading):
+
+    print(f"\n{heading}")
+
+    for feature, contribution in contributors.head(count).items():
+        readable_name = format_feature_name(feature)
+        print(f"{readable_name}: {contribution:+.3f}")
+
 def main():
     while True:
         print("\nReadmission Prediction Tool")
@@ -118,17 +126,55 @@ def main():
             risk_increasing = contributions[contributions > 0].sort_values(ascending=False)
             risk_decreasing = contributions[contributions < 0].sort_values(ascending=True)
 
-            print("\nTop features increasing readmission risk:")
+            risk_count = 5
+            protective_count = 5
 
-            for feature, contribution in risk_increasing.head(5).items():
-                readable_name = format_feature_name(feature)
-                print(f"{readable_name}: +{contribution:.3f}")
+            display_contributors(
+                risk_increasing,
+                risk_count,
+                "Top features increasing readmission risk:"
+            )
 
-            print("\nTop features decreasing readmission risk:")
+            display_contributors(
+                risk_decreasing,
+                protective_count,
+                "Top features decreasing readmission risk:"
+            )
 
-            for feature, contribution in risk_decreasing.head(5).items():
-                readable_name = format_feature_name(feature)
-                print(f"{readable_name}: {contribution:.3f}")
+            while True:
+
+                print("\n1. Show 5 more risk-increasing features")
+                print("2. Show 5 more risk-decreasing features")
+                print("3. Return to main menu")
+
+                expand_choice = input("Select option: ")
+
+                if expand_choice == "1":
+                    risk_count = min(risk_count + 5, len(risk_increasing))
+
+                    display_contributors(
+                        risk_increasing,
+                        risk_count,
+                        "Features increasing readmission risk:"
+                    )
+
+                elif expand_choice == "2":
+                    protective_count = min(
+                        protective_count + 5,
+                        len(risk_decreasing)
+                    )
+
+                    display_contributors(
+                        risk_decreasing,
+                        protective_count,
+                        "Features decreasing readmission risk:"
+                    )
+
+                elif expand_choice == "3":
+                    break
+
+                else:
+                    print("Invalid selection.")
 
         elif choice == "2":
             train_and_save()
