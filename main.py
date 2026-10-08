@@ -111,15 +111,22 @@ def main():
             print(f"Predicted 30-day readmission risk: {readmission_probability:.1%}")
             print("Actual readmission:", "Yes" if actual == 1 else "No")
 
-            feature_contributions = patient.iloc[0] * model.coef_[0]
+            # Calculate each feature's contribution to this patient's prediction
+            contributions = patient.iloc[0] * model.coef_[0]
 
-            contributions = feature_contributions.sort_values(
-                ascending=False
-            )
+            # Separate features that increase vs decrease predicted readmission risk
+            risk_increasing = contributions[contributions > 0].sort_values(ascending=False)
+            risk_decreasing = contributions[contributions < 0].sort_values(ascending=True)
 
             print("\nTop features increasing readmission risk:")
 
-            for feature, contribution in contributions.head(10).items():
+            for feature, contribution in risk_increasing.head(5).items():
+                readable_name = format_feature_name(feature)
+                print(f"{readable_name}: +{contribution:.3f}")
+
+            print("\nTop features decreasing readmission risk:")
+
+            for feature, contribution in risk_decreasing.head(5).items():
                 readable_name = format_feature_name(feature)
                 print(f"{readable_name}: {contribution:.3f}")
 
