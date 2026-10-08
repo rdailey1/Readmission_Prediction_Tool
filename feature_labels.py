@@ -2,6 +2,8 @@ import csv
 
 
 IDS_MAPPING_PATH = "data/reference/IDS_mapping.csv"
+ICD9_MAPPING_PATH = "data/reference/V26 I-9 Diagnosis.txt" 
+ICD9_CATEGORY_PATH = "data/reference/Dtab09.txt"
 
 
 def load_uci_mappings():
@@ -38,23 +40,108 @@ def load_uci_mappings():
     return mappings
 
 
-UCI_MAPPINGS = load_uci_mappings()
+def load_icd9_mappings():
 
+    mappings = {}
+
+    with open(ICD9_MAPPING_PATH, encoding="utf-8") as file:
+
+        for line in file:
+
+            line = line.strip()
+
+            if not line:
+                continue
+
+            # Split once between ICD-9 code and description
+            parts = line.split(maxsplit=1)
+
+            if len(parts) != 2:
+                continue
+
+            code, description = parts
+
+            # Store code without decimal so it matches normalized UCI codes
+            normalized_code = code.replace(".", "")
+
+            mappings[normalized_code] = description.strip()
+
+    return mappings
+
+def load_icd9_categories():
+
+    mappings = {}
+
+    with open(ICD9_CATEGORY_PATH, encoding="utf-8") as file:
+
+        for line in file:
+
+            line = line.strip()
+
+            if not line:
+                continue
+
+            parts = line.split(maxsplit=1)
+
+            if len(parts) != 2:
+                continue
+
+            code, description = parts
+
+            # Store only broad 3-digit ICD-9 categories
+            if len(code) == 3 and code.isdigit():
+                mappings[code] = description.strip()
+
+    return mappings
+
+UCI_MAPPINGS = load_uci_mappings()
+ICD9_MAPPINGS = load_icd9_mappings()
+ICD9_CATEGORIES = load_icd9_categories()
+
+
+def translate_icd9(code):
+
+    normalized_code = code.replace(".", "")
+
+    # Use exact diagnosis when UCI provides sufficient specificity
+    description = ICD9_MAPPINGS.get(normalized_code)
+
+    if description:
+        return description
+
+    # Otherwise use the broad 3-digit diagnosis category
+    category_code = code.split(".")[0][:3]
+    description = ICD9_CATEGORIES.get(category_code)
+
+    if description:
+        return description
+
+    return "Unknown diagnosis"
+
+def clean_description(description):
+
+    if description.upper() == "NULL":
+        return "Unknown / not recorded"
+
+    return description
 
 def format_feature_name(feature_name):
 
     # Diagnosis features
     if feature_name.startswith("diag_1_"):
         code = feature_name.replace("diag_1_", "")
-        return f"Primary diagnosis: ICD-9 {code}"
+        description = translate_icd9(code)
+        return f"Primary diagnosis: {description} (ICD-9 {code})"
 
     if feature_name.startswith("diag_2_"):
         code = feature_name.replace("diag_2_", "")
-        return f"Secondary diagnosis: ICD-9 {code}"
+        description = translate_icd9(code)
+        return f"Secondary diagnosis: {description} (ICD-9 {code})"
 
     if feature_name.startswith("diag_3_"):
         code = feature_name.replace("diag_3_", "")
-        return f"Additional diagnosis: ICD-9 {code}"
+        description = translate_icd9(code)
+        return f"Additional diagnosis: {description} (ICD-9 {code})"
 
     # Age
     if feature_name.startswith("age_"):
@@ -65,16 +152,19 @@ def format_feature_name(feature_name):
     if feature_name.startswith("admission_type_id_"):
         value = feature_name.replace("admission_type_id_", "")
         description = UCI_MAPPINGS["admission_type_id"].get(value, value)
+        description = clean_description(description)
         return f"Admission type: {description}"
 
     if feature_name.startswith("discharge_disposition_id_"):
         value = feature_name.replace("discharge_disposition_id_", "")
         description = UCI_MAPPINGS["discharge_disposition_id"].get(value, value)
+        description = clean_description(description)
         return f"Discharge disposition: {description}"
 
     if feature_name.startswith("admission_source_id_"):
         value = feature_name.replace("admission_source_id_", "")
         description = UCI_MAPPINGS["admission_source_id"].get(value, value)
+        description = clean_description(description)
         return f"Admission source: {description}"
 
     # Common numerical features
