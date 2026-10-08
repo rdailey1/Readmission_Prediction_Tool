@@ -2,8 +2,35 @@ import csv
 
 
 IDS_MAPPING_PATH = "data/reference/IDS_mapping.csv"
-ICD9_MAPPING_PATH = "data/reference/V26 I-9 Diagnosis.txt" 
+ICD9_MAPPING_PATH = "data/reference/V26 I-9 Diagnosis.txt"
 ICD9_CATEGORY_PATH = "data/reference/Dtab09.txt"
+
+
+MEDICATION_FEATURES = {
+    "metformin",
+    "repaglinide",
+    "nateglinide",
+    "chlorpropamide",
+    "glimepiride",
+    "acetohexamide",
+    "glipizide",
+    "glyburide",
+    "tolbutamide",
+    "pioglitazone",
+    "rosiglitazone",
+    "acarbose",
+    "miglitol",
+    "troglitazone",
+    "tolazamide",
+    "examide",
+    "citoglipton",
+    "insulin",
+    "glyburide-metformin",
+    "glipizide-metformin",
+    "glimepiride-pioglitazone",
+    "metformin-rosiglitazone",
+    "metformin-pioglitazone"
+}
 
 
 def load_uci_mappings():
@@ -68,6 +95,7 @@ def load_icd9_mappings():
 
     return mappings
 
+
 def load_icd9_categories():
 
     mappings = {}
@@ -94,6 +122,7 @@ def load_icd9_categories():
 
     return mappings
 
+
 UCI_MAPPINGS = load_uci_mappings()
 ICD9_MAPPINGS = load_icd9_mappings()
 ICD9_CATEGORIES = load_icd9_categories()
@@ -118,12 +147,14 @@ def translate_icd9(code):
 
     return "Unknown diagnosis"
 
+
 def clean_description(description):
 
     if description.upper() == "NULL":
         return "Unknown / not recorded"
 
     return description
+
 
 def format_feature_name(feature_name):
 
@@ -182,5 +213,34 @@ def format_feature_name(feature_name):
     if feature_name in feature_labels:
         return feature_labels[feature_name]
 
-    # Generic fallback, including medication/status features
+    # Translate medication status into clinician-readable language
+    medication_statuses = {
+        "No": "Not prescribed",
+        "Steady": "Dose unchanged",
+        "Up": "Dose increased",
+        "Down": "Dose decreased"
+    }
+
+    for medication in MEDICATION_FEATURES:
+
+        prefix = f"{medication}_"
+
+        if feature_name.startswith(prefix):
+
+            status = feature_name[len(prefix):]
+
+            readable_status = medication_statuses.get(
+                status,
+                status
+            )
+
+            readable_medication = (
+                medication
+                .replace("-", " ")
+                .title()
+            )
+
+            return f"{readable_medication}: {readable_status}"
+
+    # Generic fallback for remaining categorical features
     return feature_name.replace("_", ": ", 1).replace("_", " ")
