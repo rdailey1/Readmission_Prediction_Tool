@@ -12,6 +12,12 @@ The application intentionally does not convert model associations into treatment
 
 ---
 
+## Application Preview
+
+![Hospital Readmission Risk Prediction interface](docs/readmission-tool-ui.png)
+
+---
+
 # Project Objectives
 
 * Preprocess a large healthcare dataset
